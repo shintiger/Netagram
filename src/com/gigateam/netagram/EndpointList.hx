@@ -7,25 +7,25 @@ import sys.net.Address;
  */
 class EndpointList 
 {
-	private var clients:Array<SwitchlessEndpoint> = [];
-	private var map:Map<Int, Map<Int, SwitchlessEndpoint>> = new Map();
+	private var clients:Array<NetagramEndpoint> = [];
+	private var map:Map<Int, Map<Int, NetagramEndpoint>> = new Map();
 	public function new(){
 		
 	}
 	public function exists(addr:Address):Bool{
 		if (map.exists(addr.host)){
-			var ports:Map<Int, SwitchlessEndpoint> = map.get(addr.host);
+			var ports:Map<Int, NetagramEndpoint> = map.get(addr.host);
 			if (ports.exists(addr.port)){
 				return true;
 			}
 		}
 		return false;
 	}
-	public function get(addr:Address):SwitchlessEndpoint{
+	public function get(addr:Address):NetagramEndpoint{
 		return map.get(addr.host).get(addr.port);
 	}
-	public function set(addr:Address, client:SwitchlessEndpoint):Void{
-		var ports:Map<Int, SwitchlessEndpoint>;
+	public function set(addr:Address, client:NetagramEndpoint):Void{
+		var ports:Map<Int, NetagramEndpoint>;
 		var index:Int = clients.indexOf(client);
 		if (index < 0){
 			clients.push(client);
@@ -47,8 +47,8 @@ class EndpointList
 			trace("client not exists", addr);
 			return;
 		}
-		var client:SwitchlessEndpoint = get(addr);
-		var ports:Map<Int, SwitchlessEndpoint> = map.get(addr.host);
+		var client:NetagramEndpoint = get(addr);
+		var ports:Map<Int, NetagramEndpoint> = map.get(addr.host);
 		ports.remove(addr.port);
 		var remove:Bool = true;
 		for (port in ports.keys()){
@@ -67,7 +67,7 @@ class EndpointList
 		clients.splice(index, 1);
 		trace("Removed");
 	}
-	public function getClients():Array<SwitchlessEndpoint>{
+	public function getClients():Array<NetagramEndpoint>{
 		return clients;
 	}
 	public function numClients():Int{

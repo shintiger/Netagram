@@ -14,7 +14,7 @@ import sys.net.UdpSocket;
  * ...
  * @author Tiger
  */
-class SwitchlessHost 
+class NetagramHost 
 {
 	private var autoUpdate:Bool = true;
 	private var lock:RLock = new RLock();
@@ -26,11 +26,11 @@ class SwitchlessHost
 	//private var clients:Map<Float, SwitchlessClient>;
 	private var clients:EndpointList = new EndpointList();
 	private var host:Host;
-	public var callback:Message->SwitchlessEndpoint->Void;
-	public var onAccept:SwitchlessEndpoint->MessageFactory;
-	public var onAccepted:SwitchlessEndpoint->Void;
-	public var onDisconnect:SwitchlessEndpoint->Void;
-	public var onRequest:UdpSocket->Address->SwitchlessEndpoint;
+	public var callback:Message->NetagramEndpoint->Void;
+	public var onAccept:NetagramEndpoint->MessageFactory;
+	public var onAccepted:NetagramEndpoint->Void;
+	public var onDisconnect:NetagramEndpoint->Void;
+	public var onRequest:UdpSocket->Address->NetagramEndpoint;
 	public var onUpdate:Float->Void;
 	public var preUpdate:Float->Void;
 	private var impl:UdpSocket;
@@ -40,13 +40,13 @@ class SwitchlessHost
 		//var future = executor.submit(loop, FIXED_RATE(100)); 
 		secret = Math.ceil(Math.random() * 65535);
 	}
-	public static function fromExisting(old:UdpSocket):SwitchlessHost{
-		var server:SwitchlessHost = new SwitchlessHost();
+	public static function fromExisting(old:UdpSocket):NetagramHost{
+		var server:NetagramHost = new NetagramHost();
 		server.impl = old;
 		return server;
 	}
-	public static function listen(host:String, port:Int):SwitchlessHost{
-		var server:SwitchlessHost = new SwitchlessHost();
+	public static function listen(host:String, port:Int):NetagramHost{
+		var server:NetagramHost = new NetagramHost();
 		server.impl = new UdpSocket();
 		var _host:Host = new Host(host);
 		server.impl.bind(_host, port);
@@ -69,7 +69,7 @@ class SwitchlessHost
 		globalStartTime = Sys.time();
 		
 		if (onAccept == null){
-			onAccept = function(client:SwitchlessEndpoint):MessageFactory{
+			onAccept = function(client:NetagramEndpoint):MessageFactory{
 				return new MessageFactory(MessageRegistry.getInstance());
 			};
 		}
@@ -101,7 +101,7 @@ class SwitchlessHost
 			}
 		}
 		var removeClient:Address = null;
-		var clientList:Array<SwitchlessEndpoint> = clients.getClients();
+		var clientList:Array<NetagramEndpoint> = clients.getClients();
 		for (client in clientList){
 			var diff:Float = time-client.lastReceived;
 			//trace("Time diff:" + Std.string(diff), time, client.lastReceived);
@@ -128,7 +128,7 @@ class SwitchlessHost
 		var buf:Bytes = null;
 		var read:Int = -1;
 		var addrFloat:Float = 0;
-		var client:SwitchlessEndpoint;
+		var client:NetagramEndpoint;
 		try{
 			addr = new Address();
 			buf = Bytes.alloc(2048);
@@ -153,7 +153,7 @@ class SwitchlessHost
 			if (onRequest != null){
 				client = onRequest(impl, addr);
 			}else{
-				client = new SwitchlessEndpoint(impl, addr);
+				client = new NetagramEndpoint(impl, addr);
 			}
 			
 			client.addrFloat = addrFloat;
@@ -163,7 +163,7 @@ class SwitchlessHost
 		if (!client.accepted){
 			var stream:BytesStream = new BytesStream(buf, 0);
 			var header:Int = stream.readInt32();
-			if (header == Switchless.REQUEST_HEADER){
+			if (header == Netagram.REQUEST_HEADER){
 				var body:String = "";
 				try{
 					body = stream.readUTF();
@@ -171,7 +171,7 @@ class SwitchlessHost
 						trace("body not 64 length");
 						lock.release();
 						return;
-					}else if (body == Switchless.REQUEST_COMMAND){
+					}else if (body == Netagram.REQUEST_COMMAND){
 						client.setReceiveBaseTime(stream.readDouble());
 						if (client.token == ""){
 							client.token = Sha256.encode(Std.string(addrFloat) + Std.string(Sys.time()));

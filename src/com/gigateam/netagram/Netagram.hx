@@ -11,7 +11,7 @@ import sys.net.UdpSocket;
  * ...
  * @author Tiger
  */
-class Switchless extends DuplexStream
+class Netagram extends DuplexStream
 {
 	public static inline var REQUEST_HEADER:Int = 0xf0ff0f00;
 	public static inline var REQUEST_COMMAND:String = "1234567812345678123456781234567812345678123456781234567812345678";
@@ -50,8 +50,8 @@ class Switchless extends DuplexStream
 		allocate(factory, 65536);
 		//_target.host = 
 	}
-	public static function fromString(host:String, port:Int, factory:MessageFactory):Switchless{
-		var switchless:Switchless = new Switchless(new Host(host), port, factory);
+	public static function fromString(host:String, port:Int, factory:MessageFactory):Netagram{
+		var switchless:Netagram = new Netagram(new Host(host), port, factory);
 		return switchless;
 	}
 	public function start():Void{

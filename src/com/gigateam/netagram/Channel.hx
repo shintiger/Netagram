@@ -43,16 +43,16 @@ class Channel extends EndpointList implements IMessageSender
 		}
 		return earliest;
 	}
-	override public function set(addr:Address, client:SwitchlessEndpoint):Void{
+	override public function set(addr:Address, client:NetagramEndpoint):Void{
 		super.set(addr, client);
 	}
 	override public function remove(addr:Address):Void{
 		super.remove(addr);
 	}
-	private function onSubscribe(client:SwitchlessEndpoint):Void{
+	private function onSubscribe(client:NetagramEndpoint):Void{
 		
 	}
-	private function onUnsubscribe(client:SwitchlessEndpoint):Void{
+	private function onUnsubscribe(client:NetagramEndpoint):Void{
 		
 	}
 }

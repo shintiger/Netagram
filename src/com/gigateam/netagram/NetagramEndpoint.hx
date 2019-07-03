@@ -8,7 +8,7 @@ import sys.net.UdpSocket;
  * ...
  * @author Tiger
  */
-class SwitchlessEndpoint extends DuplexStream
+class NetagramEndpoint extends DuplexStream
 {
 	public var addr:Address;
 	public var addrFloat:Float;
