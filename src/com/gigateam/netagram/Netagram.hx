@@ -37,7 +37,7 @@ class Netagram extends DuplexStream
 	public var onMessage:Message->Void;
 	public var onConnected:Void->Void;
 	public var onDisconnected:Void->Void;
-	public var handler:ISwitchlessHandler;
+	public var handler:INetagramHandler;
 	public var mannualHandleMessage:Bool = true;
 	public function new(host:Host, port:Int, factory:MessageFactory) 
 	{

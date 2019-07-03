@@ -3,7 +3,7 @@ package com.gigateam.netagram;
 /**
  * @author 
  */
-interface ISwitchlessHandler 
+interface INetagramHandler 
 {
 	function onMessage(message:Message):Void;
 	function onConnected():Void;
