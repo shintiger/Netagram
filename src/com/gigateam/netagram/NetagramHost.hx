@@ -34,24 +34,18 @@ class NetagramHost
 	public var onUpdate:Float->Void;
 	public var preUpdate:Float->Void;
 	private var impl:UdpSocket;
-	public function new() 
+	public function new(host:String, port:Int) 
 	{
 		//var executor:Executor = Executor.create(1);
 		//var future = executor.submit(loop, FIXED_RATE(100)); 
 		secret = Math.ceil(Math.random() * 65535);
+		impl = new UdpSocket();
+		var _host = new Host(host);
+		impl.bind(_host, port);
 	}
 	public static function fromExisting(old:UdpSocket):NetagramHost{
-		var server:NetagramHost = new NetagramHost();
+		var server:NetagramHost = new NetagramHost("0.0.0.0", 0);
 		server.impl = old;
-		return server;
-	}
-	public static function listen(host:String, port:Int):NetagramHost{
-		var server:NetagramHost = new NetagramHost();
-		server.impl = new UdpSocket();
-		var _host:Host = new Host(host);
-		server.impl.bind(_host, port);
-		//server.impl.listen(0);
-		server.host = new Host(host);
 		return server;
 	}
 	//public function start(callback:Message->SwitchlessEndpoint->Void, onAccept:SwitchlessEndpoint->MessageFactory, onRequest:UdpSocket->Address->SwitchlessEndpoint, preUpdate:Float->Void, interval:Int):Void{
