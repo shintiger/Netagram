@@ -1,6 +1,6 @@
 #Netagram
 
-##If you are going to develop a time-critical application, TCP may not suitable for you. Netagram is a UDP based server/client library, allow you to optionally send message reliably or not.
+If you are going to develop a time-critical application, TCP may not suitable for you. Netagram is a UDP based server/client library, allow you to optionally send message reliably or not.
 
 #What kind of application need Netagram?
 ##1. PvP game, eg: League of Legends, Overwatch, Left 4 Dead
@@ -15,8 +15,8 @@
 
 #Who should consider to use Netagram?
 ##1. Non-C++ user
-###Haxe have many major target include C++, if you are experienced C++ developer and your project is fine to fully using C++, there are many library better than Netagram.
+Haxe have many major target include C++, if you are experienced C++ developer and your project is fine to fully using C++, there are many library better than Netagram.
 Otherwise you can write your server in Nodejs, Java, C#, C++, python and Haxe, C++, C#, JS, Java in client.
 
 ##2. Small team/one man dev
-###Write server and client with same logic is a pain, Netagram(Haxe) offer you to write once and transpile to multiple target.
+Write server and client with same logic is a pain, Netagram(Haxe) offer you to write once and transpile to multiple target.
