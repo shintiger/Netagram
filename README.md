@@ -8,7 +8,7 @@ If you are going to develop a time-critical application, TCP may not suitable fo
 
 Nowaday, almost every esport level PvP game are UDP based with a interpolation delay, but design a protocol from plain UDP is a pain.
 
-## 2. Send/receive lastest market price when trading
+## 2. Send/receive latest market price when trading
 
 Depends on algorithm, many of them are not nessesary to know every price update, instead, need most update price as soon as possible.
 
