@@ -28,13 +28,14 @@ class Client {
 
 		client.mannualHandleMessage = false;
 		client.start();
-		var position:PositionMessage = new PositionMessage();
-		position.floatX = 1;
-		position.floatY = 2;
-		client.send(position);
+
 		#if sys
 		while (true) {
 			Sys.sleep(1000);
+			var position:PositionMessage = new PositionMessage();
+			position.floatX = 1;
+			position.floatY = 2;
+			client.sendReliable(position);
 		}
 		#end
 	}
