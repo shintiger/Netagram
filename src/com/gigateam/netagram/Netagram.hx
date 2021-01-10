@@ -130,6 +130,7 @@ class Netagram extends DuplexStream {
 
 	private function read():Void {
 		_impl.waitForRead();
+
 		var buf:Bytes = Bytes.alloc(4096);
 		var addr:Address = new Address();
 		var read:Int = _impl.readFrom(buf, 0, buf.length, addr);
@@ -143,10 +144,11 @@ class Netagram extends DuplexStream {
 			trace("Unknown packet, ignore");
 			return;
 		}
+		// trace("append message:", read);
 		append(buf, read);
 		if (read < buf.length) {
 			if (!mannualHandleMessage) {
-				handleMessages();
+				handleMessages(true);
 			} else {
 				_messagesPending = true;
 			}
@@ -166,8 +168,8 @@ class Netagram extends DuplexStream {
 		}
 	}
 
-	public function handleMessages():Void {
-		if (!_messagesPending) {
+	public function handleMessages(force = false):Void {
+		if (!force && !_messagesPending) {
 			return;
 		}
 		_messagesPending = false;

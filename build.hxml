@@ -1,0 +1,14 @@
+-cp src
+-debug
+-lib haxe-concurrent
+-lib hxfsm
+
+--each
+
+-cpp server
+-main example.Server
+
+--next
+
+-cpp client
+-main example.Client

@@ -23,8 +23,7 @@ class RollingIndex {
 		return diff;
 	}
 
-	public function leftAdd(src:Int, target:Int):UInt {
-		trace(src);
+	public function leftAdd(src:UInt, target:Int):UInt {
 		var diff:Int = (src + target) % _max;
 		if (diff < 0) {
 			diff += _max;

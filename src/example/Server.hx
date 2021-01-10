@@ -1,6 +1,7 @@
 package example;
 
-import example.PositionMessage;
+import example.message.JsonMessage;
+import example.message.PositionMessage;
 import com.gigateam.netagram.MessageRegistry;
 import com.gigateam.netagram.Channel;
 import com.gigateam.netagram.BytesMessage;
@@ -15,17 +16,24 @@ import com.gigateam.netagram.NetagramHost;
 class Server {
 	static function main() {
 		MessageRegistry.getInstance().register(new PositionMessage());
+		MessageRegistry.getInstance().register(new JsonMessage());
 
 		var channel:Channel = new Channel();
 		var server:NetagramHost = new NetagramHost("0.0.0.0", 12345);
 
 		server.callback = function(message:Message, client:NetagramEndpoint):Void {
-			var responseMessage:BytesMessage = BytesMessage.fromUTF('{"x":0}');
 			if (Std.is(message, PositionMessage)) {
 				var position:PositionMessage = cast message;
 				trace("Received position message", position.floatX, position.floatY);
+				var jsonMessage:JsonMessage = new JsonMessage();
+				jsonMessage.data = {
+					'doubleFloatX': position.floatX * 2,
+					'doubleFloatY': position.floatY * 2
+				}
+				channel.send(jsonMessage);
+			} else {
+				trace("Unknown message received.");
 			}
-			channel.send(responseMessage);
 		}
 
 		server.onAccepted = function(client:NetagramEndpoint):Void {

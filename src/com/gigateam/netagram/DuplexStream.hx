@@ -108,22 +108,14 @@ class DuplexStream extends BufferReader implements IMessageSender {
 	}
 
 	public function sendReliable(message:Message):Int {
-		if (message.measureSize() + 1 > SliceMessage.SLICE_LENGTH) {
-			/*var slices:Array<SliceMessage> = SliceMessage.split(message);
-				for (slice in slices){
-					slice.blockId = blockSentIndex.index;
-					sendReliable(slice);
-			}*/
+		if (message.measureSize() >= SliceMessage.SLICE_LENGTH) {
 			var block:Block = Block.fromMessage(blockSentIndex.index, message);
 			sentBlock.set(blockSentIndex.index, block);
 			blockSentIndex.add(1);
 
 			var slices:Map<Int, SliceMessage> = block.getSlices();
 			for (slice in slices) {
-				// trace("send slice", slice.blockId, slice.sliceId);
 				_sendReliable(slice);
-				// var stream:BytesStream = new BytesStream(slice.bytes, 0);
-				// trace(slice.sliceId, stream.toHex(30));
 			}
 			return -1;
 		}
@@ -140,53 +132,35 @@ class DuplexStream extends BufferReader implements IMessageSender {
 
 	public function flush(impl:UdpSocket, time:Float):Int {
 		acquire();
+
 		var dt:Float = time - lastSent;
 		var bandwidthAvailable:UInt = Std.int(BYTES_PER_SECOND * dt);
 		lastSent = time;
 		var messageIds:Array<Int> = [];
+		// Filter messages need to send in this frame
 		var messages:Array<Message> = messageFactory.fetchMessages(time, bandwidthAvailable, messageIds);
-		/*
-			while (true){
-				message = messageFactory.fetchMessage(time);
-				if (message == null){
-					break;
-				}
-				bandwidthAvailable-= message.measureSize();
-				messages.push(message);
-				messageIds.push(message.messageId);
-			}
-			if (bandwidthAvailable > 0){
-				var reliable:Message = messageFactory.fetchNonAck(time);
-				if(reliable!=null){
-					messages.unshift(reliable);
-					messageIds.unshift(reliable.messageId);
-					bandwidthAvailable-= reliable.measureSize();
-				}
-			}
-		 */
-		// var payload:Payload = Payload.create(sentIndex.index, 65535, receiveIndex.index, receivedFlags, time, messages);
+
 		var payload:Payload = Payload.create(sentIndex.index, 65535, receiveIndex.index, receivedFlags, time - sentBaseTime, messages);
-		// trace(time, sentBaseTime, time-sentBaseTime);
 		sentIndex.add(1);
 		messagesIndexes.set(payload.payloadId, messageIds);
 		messageFactory.sort();
 		sendPayload(payload);
+
 		release();
 		return 0;
 	}
 
-	///public function sendPayload(impl:UdpSocket, bytes:Bytes, length:UInt):Int{
 	public function sendPayload(payload:Payload):Int {
-		// trace("sending payload", payload.payloadId, payload.length);
 		var payloadPointer:BytesPointer = payload.getPointer();
 		var length:Int = payloadPointer.length;
-		// trace("Payload length:", length);
 		var sentBytes:Int = 0;
 		var lastFragmentLength:UInt = length % MTU;
 		var numFragments:UInt = Math.ceil(length / MTU);
+
 		if (numFragments > MAX_FRAGMENT) {
 			throw "Fragments exceed maximum.";
 		}
+
 		for (i in 0...numFragments) {
 			// trace("Fragment num:", i);
 			var srcPointer:BytesPointer = new BytesPointer();
@@ -206,14 +180,6 @@ class DuplexStream extends BufferReader implements IMessageSender {
 				srcPointer.length = MTU;
 			}
 
-			/*
-				dstPos += BytesUtil.writeUnsignedInt16(fragmentBuffer, dstPos, payload.payloadId);
-				dstPos += BytesUtil.write(fragmentBuffer, dstPos, flags);
-				dstPos += BytesUtil.writeBytes(srcPointer.reference, srcPointer.position, fragmentBuffer, dstPos, srcPointer.length);
-
-				dstPointer.length = dstPos - dstPointer.position;
-			 */
-
 			var fragmentBody:Bytes = Bytes.alloc(srcPointer.length);
 			BytesUtil.writeBytes(srcPointer.reference, srcPointer.position, fragmentBody, 0, srcPointer.length);
 			var crc32:Int = Crc32.make(fragmentBody);
@@ -228,6 +194,7 @@ class DuplexStream extends BufferReader implements IMessageSender {
 
 			sentBytes += rawSend(impl, dstPointer);
 		}
+
 		return sentBytes;
 	}
 
@@ -244,31 +211,38 @@ class DuplexStream extends BufferReader implements IMessageSender {
 
 	public function fetchMessage():Array<Message> {
 		acquire();
+
 		var messages:Array<Message> = [];
 		var length:Int = bufferPosition;
 		bufferPosition = 0;
-		// super.readInto(bytes);
+
 		var fragment:Fragment = Fragment.fromBytes(BytesPointer.create(buffer, 0, length));
 		var payload:Payload;
+
 		if (fragment == null) {
 			release();
 			return messages;
 		}
+
 		if (fragment.length > MTU) {
+			trace("Invalid fragment: Exceed MTU");
 			release();
 			return messages;
 		}
+
 		if (receivedPayload.exists(fragment.payloadId)) {
 			payload = receivedPayload.get(fragment.payloadId);
 		} else {
 			payload = new Payload(fragment.payloadId);
 			receivedPayload.set(payload.payloadId, payload);
 		}
+
 		if (!payload.insert(fragment)) {
 			trace("insert fail");
 			release();
 			return messages;
 		}
+
 		if (payload.completed()) {
 			var diff:Int = receiveIndex.greaterThan(payload.payloadId);
 			if (receiveIndex.index == 0xffff || diff < 0) {
@@ -283,7 +257,6 @@ class DuplexStream extends BufferReader implements IMessageSender {
 				receivedFlags |= 1 >> diff;
 			}
 			messages = payload.parseMessages(messageFactory, receiveBaseTime);
-			//
 			var j:Int = 0;
 			while (j < messages.length) {
 				var message:Message = messages[j];
@@ -313,10 +286,10 @@ class DuplexStream extends BufferReader implements IMessageSender {
 					ackPayload(payload.ack - i);
 				}
 			}
-			// trace("numFragments", payload.numFragments, "messages", messages.length);
 			lastReceived = Sys.time();
 			receivedPayload.remove(payload.payloadId);
 		}
+
 		release();
 		return messages;
 	}
@@ -337,7 +310,9 @@ class DuplexStream extends BufferReader implements IMessageSender {
 		if (!messagesIndexes.exists(payloadId)) {
 			return;
 		}
+
 		indexes = messagesIndexes.get(payloadId);
+
 		for (index in indexes) {
 			var message:Message = messageFactory.ackMessage(index);
 			if (message == null) {
@@ -345,15 +320,19 @@ class DuplexStream extends BufferReader implements IMessageSender {
 				trace("Warnning: duplicate received, messageId:", index, "Pending reliable messages length:", messageFactory.numReliableMessages());
 				continue;
 			}
+
 			if (message.sentTime > lastAckedMessageTime) {
 				lastAckedMessageTime = message.sentTime;
 			}
+
 			RTT = (time - message.sentTime);
+
 			if (SRTT <= 0) {
 				SRTT = RTT;
 			} else {
 				SRTT = SRTT * 7 / 8 + RTT * 1 / 8;
 			}
+
 			if (Std.is(message, SliceMessage)) {
 				var slice:SliceMessage = cast message;
 				var block:Block = getSentBlockFromMessageId(slice.messageId);

@@ -1,6 +1,0 @@
--cp src
--debug
--neko server.n
--main example.Server
--lib haxe-concurrent
--lib hxfsm

@@ -1,5 +1,7 @@
 package example;
 
+import example.message.JsonMessage;
+import example.message.PositionMessage;
 import com.gigateam.netagram.Message;
 import sys.net.Host;
 import com.gigateam.netagram.Netagram;
@@ -11,8 +13,12 @@ import com.gigateam.netagram.MessageRegistry;
  * @author
  */
 class Client {
+	private static var latestFloatX:Float = 0;
+	private static var latestFloatY:Float = 0;
+
 	static function main() {
 		MessageRegistry.getInstance().register(new PositionMessage());
+		MessageRegistry.getInstance().register(new JsonMessage());
 
 		var connected:Bool = false;
 		var factory:MessageFactory = new MessageFactory(MessageRegistry.getInstance());
@@ -23,7 +29,16 @@ class Client {
 		};
 
 		client.onMessage = function(message:Message):Void {
-			trace("Unknow message", message);
+			if (Std.is(message, JsonMessage)) {
+				var jsonMessage:JsonMessage = cast message;
+
+				trace("Incoming message", message, jsonMessage.data.doubleFloatX, jsonMessage.data.doubleFloatY);
+				if ((latestFloatX * 2) == jsonMessage.data.doubleFloatX && (latestFloatY * 2) == jsonMessage.data.doubleFloatY) {
+					trace("Message is as expected!");
+				}
+			} else {
+				trace("Unknown message", message);
+			}
 		};
 
 		client.mannualHandleMessage = false;
@@ -31,11 +46,19 @@ class Client {
 
 		#if sys
 		while (true) {
-			Sys.sleep(1000);
-			var position:PositionMessage = new PositionMessage();
-			position.floatX = 1;
-			position.floatY = 2;
-			client.sendReliable(position);
+			Sys.sleep(3);
+			if (connected) {
+				var position:PositionMessage = new PositionMessage();
+				position.floatX = Math.floor(Math.random() * 1000) / 100;
+				position.floatY = Math.floor(Math.random() * 1000) / 100;
+
+				latestFloatX = position.floatX;
+				latestFloatY = position.floatY;
+
+				client.sendReliable(position);
+
+				trace("Sending floatX:", position.floatX, "floatY:", position.floatY);
+			}
 		}
 		#end
 	}

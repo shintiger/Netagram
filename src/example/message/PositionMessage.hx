@@ -1,4 +1,4 @@
-package example;
+package example.message;
 
 import com.gigateam.netagram.Message;
 import com.gigateam.util.BytesStream;
