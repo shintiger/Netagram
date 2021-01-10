@@ -41,7 +41,7 @@ Both server and client are sending data in a fix interval, send exact 1 payload 
 
 ## Fragment
 
-When payload size exceed "MTU size" (This is constant 1024 rather than system MTU), it splits into multiple fragments and send every fragment as a independant packet.
+When payload size exceed "MTU size" (This is constant 1024 rather than system MTU), it splits into multiple fragments and send every fragment as an independant packet. This can prevent drop rate when some unit of UDP packet was dropped.
 
 ## Block
 
