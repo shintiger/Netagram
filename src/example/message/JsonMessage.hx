@@ -1,6 +1,5 @@
 package example.message;
 
-import hex.error.Error.UnsupportedOperationException;
 import haxe.Json;
 import com.gigateam.netagram.Message;
 import com.gigateam.util.BytesStream;

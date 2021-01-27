@@ -1,13 +1,20 @@
 {
   "name": "netagram",
-  "url" : "https://github.com/jasononeil/useless/",
+  "url": "https://github.com/shintiger/Netagram",
   "license": "MIT",
-  "tags": ["network", "udp"],
-  "description": "This library is useless in the same way on every platform.",
+  "tags": [
+    "network",
+    "udp",
+    "haxe",
+    "multiplayer"
+  ],
+  "description": "A network library based on UDP. Mostly use for state synchronization.",
   "version": "0.0.1",
   "classPath": "src/",
   "releasenote": "Initial release, everything is working correctly.",
-  "contributors": ["Tiger"],
+  "contributors": [
+    "Tiger"
+  ],
   "dependencies": {
     "haxe-concurrent": "2.1.2"
   }

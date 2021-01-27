@@ -1,7 +1,6 @@
 -cp src
 -debug
 -lib haxe-concurrent
--lib hxfsm
 
 --each
 
